@@ -1,7 +1,7 @@
 {
     "doc": "A weather reading.",
     "name": "Weather",
-    "namespace": "test",
+    "namespace": "my.test",
     "type": "record",
     "fields": [
         {
@@ -30,6 +30,50 @@
                 "int",
                 "float"
             ]
+        },
+        {
+            "name": "array",
+            "type": {
+                "type": "array",
+                "items": [
+                    "null",
+                    "string"
+                ]
+            }
+        },
+        {
+            "name": "map",
+            "type": {
+                "type": "map",
+                "values": [
+                    "null",
+                    "string"
+                ]
+            }
+        },
+        {
+            "name": "enum",
+            "type": {
+                "type": "enum",
+                "name": "MyEnum",
+                "symbols": [
+                    "EnumA",
+                    "EnumB"
+                ]
+            }
+        },
+        {
+            "name": "record",
+            "type": {
+                "type": "record",
+                "name": "Record",
+                "fields": [
+                    {
+                        "name": "Field1",
+                        "type": "string"
+                    }
+                ]
+            }
         }
     ]
 }
