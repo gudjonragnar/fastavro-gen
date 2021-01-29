@@ -122,7 +122,7 @@ def _extract_default(field: SimpleField, output_type: OutputType) -> Optional[st
     return None
 
 
-def write_file(collector: Collector):
+def write_file(collector: Collector, output_dir: str = "."):
     data = StringIO()
     _write_imports(data, collector)
     for line in collector.lines:
@@ -130,6 +130,7 @@ def write_file(collector: Collector):
     for line in collector.lines_with_default:
         data.write(line)
     path, fname = _name_to_filepath(collector.record["name"])
+    path = f"{output_dir}/{path}"
     if not os.path.exists(path):
         os.makedirs(path, exist_ok=True)
     with open(os.path.join(path, fname), "w+") as f:
@@ -144,6 +145,7 @@ def write_record(
     output_type: OutputType,
     *,
     namespace_prefix: str = "",
+    output_dir: str = ".",
 ) -> None:
     record["name"] = _remove_prefix(record["name"], namespace_prefix)
     collector = Collector(record)
@@ -167,7 +169,7 @@ def write_record(
             collector.lines_with_default.append(f"    {field['name']}: {t}{default}\n")
         else:
             collector.lines.append(f"    {field['name']}: {t}\n")
-    write_file(collector)
+    write_file(collector, output_dir=output_dir)
     base_dirs.add(base)
 
 
@@ -176,6 +178,7 @@ def write_enum(
     base_dirs: Set[str],
     *,
     namespace_prefix: str = "",
+    output_dir: str = ".",
 ) -> None:
     enum["name"] = _remove_prefix(enum["name"], namespace_prefix)
     collector = Collector(record=enum)
@@ -186,7 +189,7 @@ def write_enum(
         collector.lines.append(f"\"\"\"{enum['doc']}\"\"\"\n")
     symbols = [f"'{s}'" for s in enum["symbols"]]
     collector.lines.append(f"{classname} = Literal[{', '.join(symbols)}]")
-    write_file(collector)
+    write_file(collector, output_dir=output_dir)
     base_dirs.add(base)
 
 
@@ -204,6 +207,7 @@ def write_schema(
     output_type: OutputType,
     *,
     namespace_prefix: str = "",
+    output_dir: str = ".",
 ) -> None:
     _schema = deepcopy(schema)
     if _schema["type"] == "record":
@@ -212,10 +216,14 @@ def write_schema(
             base_dirs,
             output_type,
             namespace_prefix=namespace_prefix,
+            output_dir=output_dir,
         )
     elif _schema["type"] == "enum":
         write_enum(
-            cast(AvroEnum, _schema), base_dirs, namespace_prefix=namespace_prefix
+            cast(AvroEnum, _schema),
+            base_dirs,
+            namespace_prefix=namespace_prefix,
+            output_dir=output_dir,
         )
     else:
         raise Exception(f"Cant write file for schema of type {_schema['type']}")
@@ -227,18 +235,30 @@ def generate_classes(
     *,
     run_black: bool = True,
     namespace_prefix: str = "",
+    output_dir: str = ".",
 ) -> None:
     base_dirs: Set[str] = set()
     if "__named_schemas" in schema:
         for _, named_schema in schema["__named_schemas"].items():
             write_schema(
-                named_schema, base_dirs, output_type, namespace_prefix=namespace_prefix
+                named_schema,
+                base_dirs,
+                output_type,
+                namespace_prefix=namespace_prefix,
+                output_dir=output_dir,
             )
-    write_schema(schema, base_dirs, output_type, namespace_prefix=namespace_prefix)
-    add_init_files(base_dirs)
-    if run_black and base_dirs:
+    write_schema(
+        schema,
+        base_dirs,
+        output_type,
+        namespace_prefix=namespace_prefix,
+        output_dir=output_dir,
+    )
+    extended_base_dirs = set([f"{output_dir}/{b}" for b in base_dirs])
+    add_init_files(extended_base_dirs)
+    if run_black and extended_base_dirs:
         print("Blackening generated files...")
-        for base in base_dirs:
+        for base in extended_base_dirs:
             subprocess.call(["black", base])
 
 
@@ -248,6 +268,7 @@ def read_schemas_and_generate_classes(
     *,
     run_black: bool = True,
     namespace_prefix: str = "",
+    output_dir: str = ".",
 ) -> None:
     for name, files in schema_files.items():
         print(f"Parsing schema/s for {name}")
@@ -257,5 +278,9 @@ def read_schemas_and_generate_classes(
             schema = load_schema_ordered(files)
         print(f"Generate {output_type.value}s...")
         generate_classes(
-            schema, output_type, run_black=run_black, namespace_prefix=namespace_prefix
+            schema,
+            output_type,
+            run_black=run_black,
+            namespace_prefix=namespace_prefix,
+            output_dir=output_dir,
         )
