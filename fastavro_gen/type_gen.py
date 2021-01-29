@@ -1,3 +1,4 @@
+from fastavro.schema import load_schema, load_schema_ordered
 import os
 from typing import Dict, List, Optional, Set, Tuple, Union, cast
 from io import StringIO
@@ -237,3 +238,22 @@ def generate_classes(
         print("Blackening generated files...")
         for base in base_dirs:
             subprocess.call(["black", base])
+
+
+def read_schemas_and_generate_classes(
+    schema_files: Dict[str, List[str]],
+    output_type: OutputType,
+    *,
+    run_black: bool = True,
+    namespace_prefix: str = "",
+) -> None:
+    for name, files in schema_files.items():
+        print(f"Parsing schema/s for {name}")
+        if len(files) == 1:
+            schema = load_schema(files[0])
+        else:
+            schema = load_schema_ordered(files)
+        print(f"Generate {output_type.value}s...")
+        generate_classes(
+            schema, output_type, run_black=run_black, namespace_prefix=namespace_prefix
+        )

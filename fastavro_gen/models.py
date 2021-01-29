@@ -1,11 +1,11 @@
 from typing import Set, TypedDict, Optional, List, Union
-from enum import Enum, auto
+from enum import Enum
 from dataclasses import dataclass, field
 
 
 class OutputType(Enum):
-    DATACLASS = auto
-    TYPEDDICT = auto
+    DATACLASS = "dataclass"
+    TYPEDDICT = "TypedDict"
 
 
 class SimpleField(TypedDict, total=False):
