@@ -4,6 +4,7 @@ from io import StringIO
 import re
 import shutil
 import subprocess
+from copy import deepcopy
 from fastavro_gen.models import OutputType, SimpleField, Record, AvroEnum, Collector
 
 
@@ -30,6 +31,12 @@ def _to_snake_case(s: str) -> str:
     return PATTERN.sub("_", s).lower()
 
 
+def _remove_prefix(name: str, namespace_prefix: str):
+    if name.startswith(namespace_prefix):
+        return name[len(namespace_prefix) :]
+    return name
+
+
 def _write_imports(
     data: StringIO,
     collector: Collector,
@@ -51,26 +58,27 @@ def _write_imports(
 def _parse_type(
     _type: Union[str, list, dict],
     collector: Collector,
+    namespace_prefix: str = "",
 ) -> str:
     # Union types
     if isinstance(_type, list):
         if len(_type) == 1:
-            return _parse_type(_type[0], collector)
+            return _parse_type(_type[0], collector, namespace_prefix=namespace_prefix)
         if len(_type) == 2 and _type[0] == "null":
             collector.typing.add("Optional")
-            return f"Optional[{_parse_type(_type[1], collector)}]"
+            return f"Optional[{_parse_type(_type[1], collector, namespace_prefix=namespace_prefix)}]"
         else:
             collector.typing.add("Union")
-            return f"Union[{', '.join([_parse_type(t, collector) for t in _type])}]"
+            return f"Union[{', '.join([_parse_type(t, collector, namespace_prefix=namespace_prefix) for t in _type])}]"
     # Map, enum, record, array
     elif isinstance(_type, dict):
-        return _parse_dict_type(_type, collector)
+        return _parse_dict_type(_type, collector, namespace_prefix=namespace_prefix)
     # String
     elif _type in PRIMITIVE_TO_TYPE:
         return PRIMITIVE_TO_TYPE[_type]
     # String, but a named schema
     elif isinstance(_type, str) and "." in _type:
-        collector.schemas.add(_type)
+        collector.schemas.add(_remove_prefix(_type, namespace_prefix))
         return _type.split(".")[-1]
     else:
         raise Exception(f"Failed parsing type of {_type}")
@@ -79,17 +87,19 @@ def _parse_type(
 def _parse_dict_type(
     _type: dict,
     collector: Collector,
+    *,
+    namespace_prefix: str = "",
 ) -> str:
     if _type["type"] == "enum":
-        return _parse_type(_type["name"], collector)
+        return _parse_type(_type["name"], collector, namespace_prefix=namespace_prefix)
     elif _type["type"] == "map":
         collector.typing.add("Dict")
-        return f"Dict[str, {_parse_type(_type['values'], collector)}]"
+        return f"Dict[str, {_parse_type(_type['values'], collector, namespace_prefix=namespace_prefix)}]"
     elif _type["type"] == "array":
         collector.typing.add("List")
-        return f"List[{_parse_type(_type['items'], collector)}]"
+        return f"List[{_parse_type(_type['items'], collector, namespace_prefix=namespace_prefix)}]"
     elif _type["type"] == "record":
-        return _parse_type(_type["name"], collector)
+        return _parse_type(_type["name"], collector, namespace_prefix=namespace_prefix)
     elif _type["type"] in PRIMITIVE_TO_TYPE:
         return PRIMITIVE_TO_TYPE[_type["type"]]
     else:
@@ -125,7 +135,14 @@ def write_file(collector: Collector):
     data.close()
 
 
-def write_record(record: Record, base_dirs: Set[str], output_type: OutputType) -> None:
+def write_record(
+    record: Record,
+    base_dirs: Set[str],
+    output_type: OutputType,
+    *,
+    namespace_prefix: str = "",
+) -> None:
+    record["name"] = _remove_prefix(record["name"], namespace_prefix)
     collector = Collector(record)
     classname = record["name"].split(".")[-1]
     base = record["name"].split(".")[0]
@@ -140,7 +157,7 @@ def write_record(record: Record, base_dirs: Set[str], output_type: OutputType) -
     if "doc" in record:
         collector.lines.append(f"    \"\"\"{record['doc']}\"\"\"\n")
     for field in record["fields"]:
-        t = _parse_type(field["type"], collector)
+        t = _parse_type(field["type"], collector, namespace_prefix=namespace_prefix)
         default = _extract_default(field, output_type)
         if default:
             collector.lines_with_default.append(f"    {field['name']}: {t}{default}\n")
@@ -150,8 +167,15 @@ def write_record(record: Record, base_dirs: Set[str], output_type: OutputType) -
     base_dirs.add(base)
 
 
-def write_enum(enum: AvroEnum, base_dirs: Set[str]) -> None:
+def write_enum(
+    enum: AvroEnum,
+    base_dirs: Set[str],
+    *,
+    namespace_prefix: str = "",
+) -> None:
+    enum["name"] = _remove_prefix(enum["name"], namespace_prefix)
     collector = Collector(record=enum)
+    collector.typing.add("Literal")
     classname = enum["name"].split(".")[-1]
     base = enum["name"].split(".")[0]
     if "doc" in enum:
@@ -171,23 +195,38 @@ def add_init_files(base_dirs: Set[str]) -> None:
 
 
 def generate_types(
-    schema: dict, output_type: OutputType, *, run_black: bool = True
+    schema: dict,
+    output_type: OutputType,
+    *,
+    run_black: bool = True,
+    namespace_prefix: str = "",
 ) -> None:
     base_dirs: Set[str] = set()
     if "__named_schemas" in schema:
-        for _, v in schema["__named_schemas"].items():
+        for _, named_schema in schema["__named_schemas"].items():
+            v = deepcopy(named_schema)
             if v["type"] == "record":
-                write_record(v, base_dirs, output_type)
+                write_record(
+                    v, base_dirs, output_type, namespace_prefix=namespace_prefix
+                )
             elif v["type"] == "enum":
-                write_enum(v, base_dirs)
+                write_enum(v, base_dirs, namespace_prefix=namespace_prefix)
             else:
                 raise Exception(f"Cant write file for named schema of type {v['type']}")
-    if schema["type"] == "record":
-        write_record(cast(Record, schema), base_dirs, output_type)
-    elif schema["type"] == "enum":
-        write_enum(cast(AvroEnum, schema), base_dirs)
+    _schema = deepcopy(schema)
+    if _schema["type"] == "record":
+        write_record(
+            cast(Record, _schema),
+            base_dirs,
+            output_type,
+            namespace_prefix=namespace_prefix,
+        )
+    elif _schema["type"] == "enum":
+        write_enum(
+            cast(AvroEnum, _schema), base_dirs, namespace_prefix=namespace_prefix
+        )
     else:
-        raise Exception(f"Cant write file for schema of type {schema['type']}")
+        raise Exception(f"Cant write file for schema of type {_schema['type']}")
     add_init_files(base_dirs)
     if run_black and base_dirs:
         print("Blackening generated files...")
