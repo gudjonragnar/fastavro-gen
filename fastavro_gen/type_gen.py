@@ -6,6 +6,12 @@ from io import StringIO
 import re
 import shutil
 import subprocess
+from enum import Enum, auto
+
+
+class OutputType(Enum):
+    DATACLASS = auto
+    TYPEDDICT = auto
 
 
 class SimpleField(TypedDict):
@@ -51,14 +57,22 @@ def _to_snake_case(s: str) -> str:
 
 
 def _write_imports(
-    data: StringIO, typing_imports: Set[str], schema_imports: Set[str]
+    data: StringIO,
+    typing_imports: Set[str],
+    schema_imports: Set[str],
+    *,
+    extra: List[str] = [],
 ) -> None:
+    """Extra should contain full import statements"""
     data.seek(0)
-    data.write(f"from typing import {', '.join(sorted(list(typing_imports)))}\n")
+    if typing_imports:
+        data.write(f"from typing import {', '.join(sorted(list(typing_imports)))}\n")
     for schema in schema_imports:
         path, fname = _name_to_filepath(schema, joiner=".")
         schema_name = schema.split(".")[-1]
         data.write(f"from {path}.{fname[:-3]} import {schema_name}\n")
+    for e in extra:
+        data.write(e)
 
 
 def _parse_type(
@@ -111,21 +125,48 @@ def _parse_dict_type(
         raise Exception(f"Failed parsing type {_type}")
 
 
-def write_record_as_typed_dict(record: Record, base_dirs: Set[str]) -> None:
+def _extract_default(field: SimpleField, output_type: OutputType) -> Optional[str]:
+    if output_type == OutputType.DATACLASS and "default" in field:
+        if isinstance(field["default"], str):
+            return f" = '{field['default']}'"
+        elif isinstance(field["default"], list):
+            return " = field(default_factory=list)"
+        elif isinstance(field["default"], dict):
+            return " = field(default_factory=dict)"
+        else:
+            return f" = {field['default']}"
+    return None
+
+
+def write_record(record: Record, base_dirs: Set[str], output_type: OutputType) -> None:
     data = StringIO()
-    _typing: Set[str] = set(["TypedDict"])
+    _typing: Set[str] = set()
     _schema_imports: Set[str] = set()
+    extra: List[str] = []
     main_class: List[str] = []
+    with_defaults: List[str] = []
     classname = record["name"].split(".")[-1]
     base = record["name"].split(".")[0]
-    main_class.append(f"class {classname}(TypedDict, total=False):\n")
+    if output_type == OutputType.DATACLASS:
+        extra.append("from dataclasses import dataclass, field\n")
+        main_class.append("@dataclass\n")
+        main_class.append(f"class {classname}:\n")
+    elif output_type == OutputType.TYPEDDICT:
+        _typing.add("TypedDict")
+        main_class.append(f"class {classname}(TypedDict, total=False):\n")
     if "doc" in record:
         main_class.append(f"    \"\"\"{record['doc']}\"\"\"\n")
     for field in record["fields"]:
         t = _parse_type(field["type"], _typing, _schema_imports)
-        main_class.append(f"    {field['name']}: {t}\n")
-    _write_imports(data, _typing, _schema_imports)
+        default = _extract_default(field, output_type)
+        if default:
+            with_defaults.append(f"    {field['name']}: {t}{default}\n")
+        else:
+            main_class.append(f"    {field['name']}: {t}\n")
+    _write_imports(data, _typing, _schema_imports, extra=extra)
     for line in main_class:
+        data.write(line)
+    for line in with_defaults:
         data.write(line)
     path, fname = _name_to_filepath(record["name"])
     if not os.path.exists(path):
@@ -139,15 +180,15 @@ def write_record_as_typed_dict(record: Record, base_dirs: Set[str]) -> None:
 
 def write_enum(enum: AvroEnum, base_dirs: Set[str]) -> None:
     data = StringIO()
-    _typing: Set[str] = set(["Union", "Literal"])
+    _typing: Set[str] = set(["Literal"])
     _schema_imports: Set[str] = set()
     main_class: List[str] = []
     classname = enum["name"].split(".")[-1]
     base = enum["name"].split(".")[0]
     if "doc" in enum:
         main_class.append(f"\"\"\"{enum['doc']}\"\"\"\n")
-    symbols = [f"Literal['{s}']" for s in enum["symbols"]]
-    main_class.append(f"{classname} = Union[{', '.join(symbols)}]")
+    symbols = [f"'{s}'" for s in enum["symbols"]]
+    main_class.append(f"{classname} = Literal[{', '.join(symbols)}]")
     _write_imports(data, _typing, _schema_imports)
     for line in main_class:
         data.write(line)
@@ -169,24 +210,26 @@ def add_init_files(base_dirs: Set[str]) -> None:
                 open(os.path.join(root, "__init__.py"), "w+").close()
 
 
-def generate_types(schema: dict) -> None:
+def generate_types(
+    schema: dict, output_type: OutputType, *, run_black: bool = True
+) -> None:
     base_dirs: Set[str] = set()
     if "__named_schemas" in schema:
         for _, v in schema["__named_schemas"].items():
             if v["type"] == "record":
-                write_record_as_typed_dict(v, base_dirs)
+                write_record(v, base_dirs, output_type)
             elif v["type"] == "enum":
                 write_enum(v, base_dirs)
             else:
                 raise Exception(f"Cant write file for named schema of type {v['type']}")
     if schema["type"] == "record":
-        write_record_as_typed_dict(Record(**schema), base_dirs)
+        write_record(Record(**schema), base_dirs, output_type)
     elif schema["type"] == "enum":
         write_enum(AvroEnum(**schema), base_dirs)
     else:
         raise Exception(f"Cant write file for schema of type {schema['type']}")
     add_init_files(base_dirs)
-    if base_dirs:
+    if run_black and base_dirs:
         print("Blackening generated files...")
-    for base in base_dirs:
-        subprocess.call(["black", base])
+        for base in base_dirs:
+            subprocess.call(["black", base])
