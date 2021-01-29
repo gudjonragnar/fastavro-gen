@@ -194,7 +194,7 @@ def add_init_files(base_dirs: Set[str]) -> None:
                 open(os.path.join(root, "__init__.py"), "w+").close()
 
 
-def generate_types(
+def generate_classes(
     schema: dict,
     output_type: OutputType,
     *,
