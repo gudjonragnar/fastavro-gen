@@ -69,3 +69,27 @@ The main pros to the `dataclass` route:
 
 1. Complex nested schemas means a lot of objects being created
 2. Extra overhead transforming messages to dictionaries
+
+
+## Usage
+
+This is a work in progress and can't currently be installed. 
+
+To generate classes use the CLI or import the `generate` function from `fastavro_gen`.
+
+```bash
+usage: fastavro_gen [-h] [-o ORDERED] [--class-type {dataclass,TypedDict}] [--no-black] [--prefix PREFIX] [file [file ...]]
+
+Generate dataclasses or TypedDicts from avro schemas
+
+positional arguments:
+  file                  file(s) to parse, use '-' for stdin
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -o ORDERED, --ordered ORDERED
+                        Path to a .toml file for multiple schemas or ordered schemas. Overwrites 'file' parameter.
+  --class-type {dataclass,TypedDict}
+  --no-black            Do not run output files through 'black'
+  --prefix PREFIX       Removes this prefix from namespace if it is contained
+```
