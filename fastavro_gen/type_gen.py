@@ -148,7 +148,6 @@ def write_record(
     base = record["name"].split(".")[0]
     if output_type == OutputType.DATACLASS:
         collector.dataclass.add("dataclass")
-        collector.dataclass.add("field")
         collector.lines.append("@dataclass\n")
         collector.lines.append(f"class {classname}:\n")
     elif output_type == OutputType.TYPEDDICT:
@@ -160,6 +159,8 @@ def write_record(
         t = _parse_type(field["type"], collector, namespace_prefix=namespace_prefix)
         default = _extract_default(field, output_type)
         if default:
+            if "field" in default:
+                collector.dataclass.add("field")
             collector.lines_with_default.append(f"    {field['name']}: {t}{default}\n")
         else:
             collector.lines.append(f"    {field['name']}: {t}\n")
@@ -194,25 +195,13 @@ def add_init_files(base_dirs: Set[str]) -> None:
                 open(os.path.join(root, "__init__.py"), "w+").close()
 
 
-def generate_classes(
+def write_schema(
     schema: dict,
+    base_dirs: Set[str],
     output_type: OutputType,
     *,
-    run_black: bool = True,
     namespace_prefix: str = "",
 ) -> None:
-    base_dirs: Set[str] = set()
-    if "__named_schemas" in schema:
-        for _, named_schema in schema["__named_schemas"].items():
-            v = deepcopy(named_schema)
-            if v["type"] == "record":
-                write_record(
-                    v, base_dirs, output_type, namespace_prefix=namespace_prefix
-                )
-            elif v["type"] == "enum":
-                write_enum(v, base_dirs, namespace_prefix=namespace_prefix)
-            else:
-                raise Exception(f"Cant write file for named schema of type {v['type']}")
     _schema = deepcopy(schema)
     if _schema["type"] == "record":
         write_record(
@@ -227,6 +216,22 @@ def generate_classes(
         )
     else:
         raise Exception(f"Cant write file for schema of type {_schema['type']}")
+
+
+def generate_classes(
+    schema: dict,
+    output_type: OutputType,
+    *,
+    run_black: bool = True,
+    namespace_prefix: str = "",
+) -> None:
+    base_dirs: Set[str] = set()
+    if "__named_schemas" in schema:
+        for _, named_schema in schema["__named_schemas"].items():
+            write_schema(
+                named_schema, base_dirs, output_type, namespace_prefix=namespace_prefix
+            )
+    write_schema(schema, base_dirs, output_type, namespace_prefix=namespace_prefix)
     add_init_files(base_dirs)
     if run_black and base_dirs:
         print("Blackening generated files...")
