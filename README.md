@@ -66,7 +66,9 @@ This is a work in progress and can't currently be installed.
 
 To generate classes use the CLI or import the `generate` function from `fastavro_gen`.
 
-```bash
+:bulb: When the ordered option is specified the file parameter will be ignored. Instead you can schemas specified in the file parameter as singletons in the toml file passed to ordered.
+
+```
 usage: fastavro_gen [-h] [-o ORDERED] [--class-type {dataclass,TypedDict}] [--no-black] [--prefix PREFIX] [file [file ...]]
 
 Generate dataclasses or TypedDicts from avro schemas
@@ -82,3 +84,19 @@ optional arguments:
   --no-black            Do not run output files through 'black'
   --prefix PREFIX       Removes this prefix from namespace if it is contained
 ```
+
+### The `--ordered` option
+The option allows users to specify an order of files to read throught fastavro's `load_schema_ordered` function.
+This is useful when your files are laid out in a manner that does not follow the structure that the normal `load_schema` expects.
+
+The option takes as value a path to a `.toml` file that describes what schemas to read and what their pre-requisites.
+For example, creating classes for a schema A that depends on B and C your `.toml` would include:
+```toml
+schemaA = [
+    "/path/to/C.avsc",
+    "/path/to/B.avsc",
+    "/path/to/A.avsc",
+]
+```
+The toml file can describe multiple schema dependencies, each as their own list.
+
