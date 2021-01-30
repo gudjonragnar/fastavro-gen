@@ -44,31 +44,20 @@ instance2 = A(
     field2="2",
 )
 ```
-#### Pros
-The main pros to the `TypedDict` route:
-1. Messages can be built using python dictionary syntax
-2. Fastavro expects messages as dictionaries
-
-#### Cons
-
-There are a couple of restrictions with this method:
-1. All fields of the dictionary have to be given at the time of creation, unless the `total` option is given as `False`.
-   Having `total=False` however restricts some aspects of the type checking e.g. checking if some keys are set or not. 
-   Currently this library has the total option hardcoded as `False` but that might be configurable at a later time.
-2. No ability to specify defaults.
+:heavy_plus_sign:Messages can be built using python dictionary syntax  
+:heavy_plus_sign:Fastavro expects messages as dictionaries 
+:heavy_minus_sign:All fields of the dictionary have to be given at the time of creation, unless the `total` option is given as `False`.
+Having `total=False` however restricts some aspects of the type checking e.g. checking if some keys are set or not. 
+Currently this library has the total option hardcoded as `False` but that might be configurable at a later time.  
+:heavy_minus_sign:No ability to specify defaults.  
 
 ### dataclass
 Dataclasses allow for easy declaration of python classes.
 
-#### Pros
-The main pros to the `dataclass` route:
-1. Can handle default values for fields. As such only non-default fields have to be instantiated initiallly.
-2. Easy to transform to dictionaries with the provided `dataclasses.asdict` function.
-
-#### Cons
-
-1. Complex nested schemas means a lot of objects being created
-2. Extra overhead transforming messages to dictionaries
+:heavy_plus_sign:Can handle default values for fields. As such only non-default fields have to be instantiated initially.  
+:heavy_plus_sign:Easy to transform to dictionaries with the provided `dataclasses.asdict` function.  
+:heavy_minus_sign:Complex nested schemas means a lot of objects being created  
+:heavy_minus_sign:Extra overhead transforming messages to dictionaries 
 
 
 ## Usage
@@ -77,7 +66,9 @@ This is a work in progress and can't currently be installed.
 
 To generate classes use the CLI or import the `generate` function from `fastavro_gen`.
 
-```bash
+:bulb: When the ordered option is specified, the file parameter will be ignored. Instead you can define schemas specified in the file parameter as singletons in the toml file passed to ordered.
+
+```
 usage: fastavro_gen [-h] [-o ORDERED] [--class-type {dataclass,TypedDict}] [--no-black] [--prefix PREFIX] [file [file ...]]
 
 Generate dataclasses or TypedDicts from avro schemas
@@ -93,3 +84,19 @@ optional arguments:
   --no-black            Do not run output files through 'black'
   --prefix PREFIX       Removes this prefix from namespace if it is contained
 ```
+
+### The `--ordered` option
+The option allows users to specify an order of files to read throught fastavro's `load_schema_ordered` function.
+This is useful when your files are laid out in a manner that does not follow the structure that the normal `load_schema` expects.
+
+The option takes as value a path to a `.toml` file that describes what schemas to read and what their pre-requisites.
+For example, creating classes for a schema A that depends on B and C your `.toml` would include:
+```toml
+schemaA = [
+    "/path/to/C.avsc",
+    "/path/to/B.avsc",
+    "/path/to/A.avsc",
+]
+```
+The toml file can describe multiple schema dependencies, each as their own list.
+
