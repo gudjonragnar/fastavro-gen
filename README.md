@@ -44,31 +44,20 @@ instance2 = A(
     field2="2",
 )
 ```
-#### Pros
-The main pros to the `TypedDict` route:
-1. Messages can be built using python dictionary syntax
-2. Fastavro expects messages as dictionaries
-
-#### Cons
-
-There are a couple of restrictions with this method:
-1. All fields of the dictionary have to be given at the time of creation, unless the `total` option is given as `False`.
-   Having `total=False` however restricts some aspects of the type checking e.g. checking if some keys are set or not. 
-   Currently this library has the total option hardcoded as `False` but that might be configurable at a later time.
-2. No ability to specify defaults.
+:heavy_plus_sign:Messages can be built using python dictionary syntax  
+:heavy_plus_sign:Fastavro expects messages as dictionaries 
+:heavy_minus_sign:All fields of the dictionary have to be given at the time of creation, unless the `total` option is given as `False`.
+Having `total=False` however restricts some aspects of the type checking e.g. checking if some keys are set or not. 
+Currently this library has the total option hardcoded as `False` but that might be configurable at a later time.  
+:heavy_minus_sign:No ability to specify defaults.  
 
 ### dataclass
 Dataclasses allow for easy declaration of python classes.
 
-#### Pros
-The main pros to the `dataclass` route:
-1. Can handle default values for fields. As such only non-default fields have to be instantiated initiallly.
-2. Easy to transform to dictionaries with the provided `dataclasses.asdict` function.
-
-#### Cons
-
-1. Complex nested schemas means a lot of objects being created
-2. Extra overhead transforming messages to dictionaries
+:heavy_plus_sign:Can handle default values for fields. As such only non-default fields have to be instantiated initially.  
+:heavy_plus_sign:Easy to transform to dictionaries with the provided `dataclasses.asdict` function.  
+:heavy_minus_sign:Complex nested schemas means a lot of objects being created  
+:heavy_minus_sign:Extra overhead transforming messages to dictionaries 
 
 
 ## Usage
