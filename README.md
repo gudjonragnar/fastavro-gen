@@ -69,7 +69,7 @@ To generate classes use the CLI or import the `generate` function from `fastavro
 :bulb: When the ordered option is specified, the file parameter will be ignored. Instead you can define schemas specified in the file parameter as singletons in the toml file passed to ordered.
 
 ```
-usage: fastavro_gen [-h] [-o ORDERED] [--class-type {dataclass,TypedDict}] [--no-black] [--prefix PREFIX] [file [file ...]]
+usage: fastavro_gen [-h] [-o ORDERED] [--class-type {dataclass,TypedDict}] [--no-black] [--prefix PREFIX] [--output-dir OUTPUT_DIR] [file [file ...]]
 
 Generate dataclasses or TypedDicts from avro schemas
 
@@ -83,6 +83,8 @@ optional arguments:
   --class-type {dataclass,TypedDict}
   --no-black            Do not run output files through 'black'
   --prefix PREFIX       Removes this prefix from namespace if it is contained
+  --output-dir OUTPUT_DIR
+                        Specify the output location
 ```
 
 ### The `--ordered` option

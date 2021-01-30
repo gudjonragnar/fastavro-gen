@@ -37,6 +37,13 @@ def main() -> None:
         type=str,
         default="",
     )
+    parser.add_argument(
+        "--output-dir",
+        dest="output_dir",
+        help="Specify the output location",
+        type=str,
+        default=".",
+    )
 
     args = parser.parse_args()
     if args.ordered:
@@ -50,6 +57,7 @@ def main() -> None:
         OutputType(args.classtype),
         run_black=(not args.black),
         namespace_prefix=args.prefix,
+        output_dir=args.output_dir,
     )
 
 
