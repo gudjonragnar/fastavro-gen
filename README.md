@@ -1,6 +1,9 @@
 # Avro scheme generation
 
+:exclamation: This is quite barebones. Not all avro structures/types will be handled correctly since it was made with a specific avro schema catalog in mind. If you find anything missing, please submit a PR or create an issue.
+
 This library aims to create dataclasses and/or typed dict definitions from avro schemes, that can be used to type check creation of messages using a static type checker such as mypy.
+The aim is to catch bugs before they occurr on runtime, and provide better IDE support.
 
 As the name suggests, it was thought of as an optional extension to use with the excellent [fastavro](github.com/fastavro/fastavro) library.
 Fastavro allows users to read avro schemas, create messages and write them as avro messages, or validate against a schema.
@@ -19,6 +22,26 @@ For example, the following record output class will be created under `./example/
     ]
 }
 ```
+
+Building a `User` message would normally be done by building a dictionary:
+```python
+{
+    "name": "My User",
+    "favorite_number": "1",
+    "favorite_color": "green",
+}
+```
+Notice that the favorite number field in the schema has type int (or None) but the one we created has a string. This would cause a runtime error when writing or validating the record.
+Using the generated dataclass we can get IDE support (screenshot using VSCode with the Pylance language server). Notice the underlined `"1"`. Hovering over shows the relevant error.
+
+![VSCode IDE support](docs/ide_support.png)
+
+Mypy will also catch this issue:
+```bash
+test.py:9: error: Argument "favorite_number" to "User" has incompatible type "str"; expected "Optional[int]"
+Found 1 error in 1 file (checked 1 source file)
+```
+
 
 ## Output
 
