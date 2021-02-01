@@ -68,7 +68,7 @@ instance2 = A(
 )
 ```
 :heavy_plus_sign:Messages can be built using python dictionary syntax  
-:heavy_plus_sign:Fastavro expects messages as dictionaries 
+:heavy_plus_sign:Fastavro expects messages as dictionaries  
 :heavy_minus_sign:All fields of the dictionary have to be given at the time of creation, unless the `total` option is given as `False`.
 Having `total=False` however restricts some aspects of the type checking e.g. checking if some keys are set or not. 
 Currently this library has the total option hardcoded as `False` but that might be configurable at a later time.  
@@ -85,7 +85,7 @@ Dataclasses allow for easy declaration of python classes.
 
 ## Usage
 
-This is a work in progress and can't currently be installed. 
+This is a work in progress and can't currently be installed without cloning the repository. 
 
 To generate classes use the CLI or import the `generate` function from `fastavro_gen`.
 
