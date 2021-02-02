@@ -10,6 +10,7 @@ jobs:
 
   package:
     runs-on: ubuntu-latest
+    name: Build and check package
 
     steps:
       - name: Checkout Repository
@@ -19,7 +20,6 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: 3.8
-          
       - name: Check packages
         run: |
           python3.8 -m pip install wheel twine;
@@ -28,6 +28,7 @@ jobs:
 
   typecheck:
     runs-on: ubuntu-latest
+    name: Mypy typecheck
 
     steps:
       - name: Checkout repository
