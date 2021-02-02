@@ -1,32 +1,24 @@
 from typing import Literal, Union
-from dataclasses import dataclass, fields, is_dataclass
-
-
-@dataclass
-class Inner:
-    a: int
-    b: str
-
-
-@dataclass
-class Outer:
-    c: float
-    d: Inner
-
+from dataclasses import fields, is_dataclass
 
 PRIMITIVES = {str, int, float, bool}
 
 
 def fields_dict(cls):
+    """Turn tuple of fields to dict"""
     return {f.name: f.type for f in fields(cls)}
 
 
 def fromdict(cls, record):
+    """Transform a dictionary to dataclass cls"""
     _fields = fields_dict(cls)
-    return cls(**{k: _handle_type(_fields[k], v, k) for k, v in record.items()})
+    return cls(**{k: _handle_type(_fields[k], v) for k, v in record.items()})
 
 
-def _handle_type(_type, val, k=""):
+def _handle_type(_type, val):
+    """Helper method to handle different types"""
+    if not val:
+        return val
     if _type in PRIMITIVES:
         return val
     try:
