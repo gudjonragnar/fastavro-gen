@@ -78,10 +78,10 @@ Currently this library has the total option hardcoded as `False` but that might 
 Dataclasses allow for easy declaration of python classes.
 
 :heavy_plus_sign:Can handle default values for fields. As such only non-default fields have to be instantiated initially.  
-:heavy_plus_sign:Easy to transform to dictionaries with the provided `fastavro_gen.asdict` function. It is simply a wrapper around `dataclasses.asdict`.
+:heavy_plus_sign:Easy to transform to dictionaries with the provided `fastavro_gen.asdict` function. It is simply a wrapper around `dataclasses.asdict`.  
 :heavy_minus_sign:Complex nested schemas means a lot of objects being created  
-:heavy_minus_sign:Extra overhead transforming messages to dictionaries 
-:heavy_minus_sign:Overhead transforming dictionaries to dataclasses using `fastavro_gen.fromdict`.
+:heavy_minus_sign:Extra overhead transforming messages to dictionaries  
+:heavy_minus_sign:Overhead transforming dictionaries to dataclasses using `fastavro_gen.fromdict`.  
 
 
 ## Usage
