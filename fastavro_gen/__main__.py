@@ -1,5 +1,5 @@
 from argparse import ArgumentParser
-from typing import Dict, List
+from typing import Dict, List, cast
 from fastavro_gen.models import OutputType
 from fastavro_gen.type_gen import read_schemas_and_generate_classes
 import toml
@@ -46,10 +46,11 @@ def main() -> None:
     )
 
     args = parser.parse_args()
+    schemas_to_parse: Dict[str, List[str]]
     if args.ordered:
-        schemas_to_parse = toml.load(args.ordered)
+        schemas_to_parse = cast(Dict[str, List[str]], toml.load(args.ordered))
     else:
-        schemas_to_parse: Dict[str, List[str]] = {}
+        schemas_to_parse = {}
         for f in args.file:
             schemas_to_parse[f.split("/")[-1]] = [f]
     read_schemas_and_generate_classes(

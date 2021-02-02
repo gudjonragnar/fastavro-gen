@@ -26,7 +26,7 @@ setup(
         "zstandard": ["zstandard"],
         "lz4": ["lz4"],
     },
-    install_requires=["fastavro>=1.3.0"],
+    install_requires=["fastavro>=1.3.0", "black"],
     tests_require=["pytest", "mypy"],
     package_data={"fastavro_gen": ["py.typed"]},
 )

@@ -67,9 +67,9 @@ def _parse_type(
             return _parse_type(_type[0], collector, namespace_prefix=namespace_prefix)
         if len(_type) == 2 and "null" in _type:
             _other = [i for i in _type if i != "null"]
-            if _other:
-                collector.typing.add("Optional")
-                return f"Optional[{_parse_type(_other[0], collector, namespace_prefix=namespace_prefix)}]"
+            collector.typing.add("Optional")
+            return f"Optional[{_parse_type(_other[0], collector, namespace_prefix=namespace_prefix)}]"
+
         else:
             collector.typing.add("Union")
             return f"Union[{', '.join([_parse_type(t, collector, namespace_prefix=namespace_prefix) for t in _type])}]"

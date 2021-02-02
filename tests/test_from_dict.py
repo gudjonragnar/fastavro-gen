@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Union
-from tests.test_utils import roundtrip
+from tests.utils import roundtrip
 
 
 @dataclass

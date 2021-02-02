@@ -4,7 +4,7 @@ from fastavro_gen.type_gen import read_schemas_and_generate_classes
 import os
 import sys
 from contextlib import contextmanager
-from tests.test_utils import roundtrip
+from tests.utils import roundtrip
 
 
 @contextmanager
