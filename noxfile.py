@@ -12,3 +12,10 @@ def test(session):
     session.run("python", "--version")
 
     session.run("pytest", "tests")
+
+
+@nox.session
+def typecheck(session):
+    session.install("mypy")
+
+    session.run("mypy", "--ignore-missing-imports", "fastavro_gen")

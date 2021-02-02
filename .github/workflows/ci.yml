@@ -7,6 +7,24 @@ defaults:
     shell: bash
 
 jobs:
+  typecheck:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Install dependencies
+        run: python3.8 -m pip install nox
+
+      - name: Run mypy
+        run: nox -s typecheck
+
   test:
     strategy:
       fail-fast: false
