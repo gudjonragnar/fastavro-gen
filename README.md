@@ -78,16 +78,17 @@ Currently this library has the total option hardcoded as `False` but that might 
 Dataclasses allow for easy declaration of python classes.
 
 :heavy_plus_sign:Can handle default values for fields. As such only non-default fields have to be instantiated initially.  
-:heavy_plus_sign:Easy to transform to dictionaries with the provided `dataclasses.asdict` function.  
+:heavy_plus_sign:Easy to transform to dictionaries with the provided `fastavro_gen.asdict` function. It is simply a wrapper around `dataclasses.asdict`.
 :heavy_minus_sign:Complex nested schemas means a lot of objects being created  
 :heavy_minus_sign:Extra overhead transforming messages to dictionaries 
+:heavy_minus_sign:Overhead transforming dictionaries to dataclasses using `fastavro_gen.fromdict`.
 
 
 ## Usage
 
 This is a work in progress and can't currently be installed without cloning the repository. 
 
-To generate classes use the CLI or import the `generate` function from `fastavro_gen`.
+To generate classes use the CLI or import the `generate` function from `fastavro_gen`. The library also exposes `fastavro_gen.[asdict, fromdict]` to map generated dataclasses to and from dictionaries.
 
 :bulb: When the ordered option is specified, the file parameter will be ignored. Instead you can define schemas specified in the file parameter as singletons in the toml file passed to ordered.
 
