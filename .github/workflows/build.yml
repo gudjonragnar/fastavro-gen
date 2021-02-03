@@ -1,0 +1,40 @@
+name: Build
+
+on:
+  push:
+    tags:
+      - v*
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Build and Deploy
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Build dist
+        run: |
+          python3.8 -m pip install wheel;
+          python3.8 setup.py sdist bdist_wheel;
+
+      - name: Publish package (Test)
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+        uses: pypa/gh-action-pypi-publish@v1.4.1
+        with:
+          user: __token__
+          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+          repository_url: https://test.pypi.org/legacy/
+
+      # - name: Publish package 
+      #   if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+      #   uses: pypa/gh-action-pypi-publish@v1.4.1
+      #   with:
+      #     user: __token__
+      #     password: ${{ secrets.PYPI_API_TOKEN }}
