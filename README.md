@@ -34,7 +34,7 @@ Building a `User` message would normally be done by building a dictionary:
 Notice that the favorite number field in the schema has type int (or None) but the one we created has a string. This would cause a runtime error when writing or validating the record.
 Using the generated dataclass we can get IDE support (screenshot using VSCode with the Pylance language server). Notice the underlined `"1"`. Hovering over shows the relevant error.
 
-![VSCode IDE support](docs/ide_support.png)
+![VSCode IDE support](https://github.com/gudjonragnar/fastavro-gen/blob/main/docs/ide_support.png)
 
 Mypy will also catch this issue:
 ```bash
@@ -86,7 +86,11 @@ Dataclasses allow for easy declaration of python classes.
 
 ## Usage
 
-This is a work in progress and can't currently be installed without cloning the repository. 
+This is a work in progress but is available on PyPI.
+
+```bash
+pip install fastavro-gen
+```
 
 To generate classes use the CLI or import the `generate` function from `fastavro_gen`. The library also exposes `fastavro_gen.[asdict, fromdict]` to map generated dataclasses to and from dictionaries.
 
