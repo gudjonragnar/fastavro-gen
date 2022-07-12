@@ -1,7 +1,7 @@
 import nox
 
 
-@nox.session(python=["3.8", "3.9"])
+@nox.session(python=["3.8", "3.9", "3.10"])
 def test(session):
     session.install("fastavro", "black", "pytest")
     session.install(".")
@@ -16,6 +16,7 @@ def test(session):
 
 @nox.session
 def typecheck(session):
+    session.install("types-toml")
     session.install("mypy")
 
     session.run("mypy", "--ignore-missing-imports", "fastavro_gen")
