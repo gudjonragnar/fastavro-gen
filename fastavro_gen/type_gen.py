@@ -16,6 +16,7 @@ PRIMITIVE_TO_TYPE: Dict[str, str] = {
     "boolean": "bool",
     "float": "float",
     "double": "float",
+    "null": "None"
 }
 
 PATTERN = re.compile(r"(?<!^)(?=[A-Z])")
