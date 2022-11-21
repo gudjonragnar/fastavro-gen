@@ -80,7 +80,6 @@
             "type": {
                 "type": "map",
                 "values": [
-                    "null",
                     "Weather"
                 ]
             }
