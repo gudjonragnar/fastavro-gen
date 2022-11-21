@@ -76,12 +76,14 @@
             }
         },
         {
-            "name" : "circle",
-                  "type" : {
-                    "type" : "map",
-                    "values" : "Weather"
-                  }
-        }
-
+            "name": "circle",
+            "type": {
+                "type": "map",
+                "values": [
+                    "null",
+                    "Weather"
+                ]
+            }
+        },
     ]
 }
