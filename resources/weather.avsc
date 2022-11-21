@@ -77,10 +77,10 @@
         },
         {
             "name" : "circle",
-                  "type" : [ "null", {
+                  "type" : {
                     "type" : "map",
                     "values" : "Weather"
-                  } ]
+                  }
         }
 
     ]

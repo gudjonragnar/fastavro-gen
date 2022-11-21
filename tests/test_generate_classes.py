@@ -50,6 +50,7 @@ def test_weather_roundtrip(tmp_path):
             array=["this", "is", "an", "array"],
             map={"key": "value", "another key": "another value"},
             enum="EnumA",
-            record=Record(Field1="only field",Field2='Weather'),
+            record=Record(Field1="only field"),
+            cyrcle={"key":'Weather'}
         )
         assert record == roundtrip(record)
