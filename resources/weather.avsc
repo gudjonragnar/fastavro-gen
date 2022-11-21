@@ -81,7 +81,7 @@
                 "type": "map",
                 "values": [
                     "null",
-                    "Weather"
+                    "my.test.Weather"
                 ]
             }
         },
