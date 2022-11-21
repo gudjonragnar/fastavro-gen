@@ -51,6 +51,6 @@ def test_weather_roundtrip(tmp_path):
             map={"key": "value", "another key": "another value"},
             enum="EnumA",
             record=Record(Field1="only field"),
-            circle={"key":  'Weather'}
+            circle={"key":  ForwardRef('Weather')}
         )
         assert record == roundtrip(record)
