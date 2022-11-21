@@ -5,6 +5,7 @@ import os
 import sys
 from contextlib import contextmanager
 from tests.utils import roundtrip
+from typing import ForwardRef
 
 
 @contextmanager
