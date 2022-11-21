@@ -71,13 +71,14 @@
                     {
                         "name": "Field1",
                         "type": "string"
-                    },
-                    {
-                        "name": "Field2",
-                        "type": "Weather"
                     }
                 ]
             }
+        },
+        {
+            "name": "Weather",
+            "type": "Weather"
         }
+
     ]
 }
