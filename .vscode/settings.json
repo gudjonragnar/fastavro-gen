@@ -1,4 +1,9 @@
 {
     "python.formatting.provider": "black",
-    "python.linting.enabled": false
+    "python.linting.enabled": false,
+    "python.testing.pytestArgs": [
+        "."
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true
 }
