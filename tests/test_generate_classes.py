@@ -5,7 +5,6 @@ import os
 import sys
 from contextlib import contextmanager
 from tests.utils import roundtrip
-from typing import ForwardRef
 
 
 @contextmanager
@@ -52,17 +51,17 @@ def test_weather_roundtrip(tmp_path):
             map={"key": "value", "another key": "another value"},
             enum="EnumA",
             record=Record(Field1="only field"),
-            circle= Weather(
-                    station="weather station A",
-                    time=1000,
-                    temp=37,
-                    optional="not None",
-                    union=3.0,
-                    array=["this", "is", "an", "array"],
-                    map={"key": "value", "another key": "another value"},
-                    enum="EnumA",
-                    record=Record(Field1="only field"),
-                    circle= None            
-                )
-            )
+            circle=Weather(
+                station="weather station A",
+                time=1000,
+                temp=37,
+                optional="not None",
+                union=3.0,
+                array=["this", "is", "an", "array"],
+                map={"key": "value", "another key": "another value"},
+                enum="EnumA",
+                record=Record(Field1="only field"),
+                circle=None,
+            ),
+        )
         assert record == roundtrip(record)

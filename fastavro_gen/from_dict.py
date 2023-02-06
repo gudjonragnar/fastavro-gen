@@ -21,27 +21,29 @@ def _handle_type(_type, val, cls):
         return val
     if _type in PRIMITIVES:
         return val
-    
+
     try:
         if is_dataclass(_type):
             return fromdict(_type, val)
         if _type.__origin__ == Literal:
             return val
         if _type._name == "List":
-            return [_handle_type(_type.__args__[0], v,cls) for v in val]
+            return [_handle_type(_type.__args__[0], v, cls) for v in val]
         if _type._name == "Optional":
-            return _handle_type(_type.__args__[0], val,cls)
+            return _handle_type(_type.__args__[0], val, cls)
         if _type._name == "Dict" and "ForwardRef" in str(_type.__args__):
-            class_dict  = {k: _handle_type(cls.__annotations__[k], v, cls) for k, v in val.items()}
+            class_dict = {
+                k: _handle_type(cls.__annotations__[k], v, cls) for k, v in val.items()
+            }
             return cls(**class_dict)
 
         if _type._name == "Dict":
             return {k: _handle_type(_type.__args__[1], v, cls) for k, v in val.items()}
-            
+
         if _type.__origin__ == Union:
             for t in _type.__args__:
                 try:
-                    return _handle_type(t, val,cls)
+                    return _handle_type(t, val, cls)
                 except:
                     pass
 

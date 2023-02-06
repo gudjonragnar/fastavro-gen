@@ -16,7 +16,7 @@ PRIMITIVE_TO_TYPE: Dict[str, str] = {
     "boolean": "bool",
     "float": "float",
     "double": "float",
-    "null": "None"
+    "null": "None",
 }
 
 PATTERN = re.compile(r"(?<!^)(?=[A-Z])")
@@ -163,15 +163,18 @@ def write_record(
         collector.lines.append(f"    \"\"\"{record['doc']}\"\"\"\n")
     for field in record["fields"]:
         t = _parse_type(field["type"], collector, namespace_prefix=namespace_prefix)
-        
-        #search for direct cycle imports and change them in literal strigs
-        t_search = re.search(r'(\[(?:\[??[^\[]*?\]))',t)
+
+        # search for direct cycle imports and change them in literal strigs
+        t_search = re.search(r"(\[(?:\[??[^\[]*?\]))", t)
         if t_search:
-            t_list = [x.replace(" ","") for x in t_search.group(1).replace("[","").replace("]","").split(",")]
+            t_list = [
+                x.replace(" ", "")
+                for x in t_search.group(1).replace("[", "").replace("]", "").split(",")
+            ]
             if classname in t_list:
                 t = t.replace(classname, f"'{classname}'")
                 collector.schemas.remove(record["name"])
-        
+
         default = _extract_default(field, output_type)
         if default:
             if "field" in default:
