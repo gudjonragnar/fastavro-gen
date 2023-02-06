@@ -12,7 +12,6 @@ def fields_dict(cls):
 def fromdict(cls, record):
     """Transform a dictionary to dataclass cls"""
     _fields = fields_dict(cls)
-    print(_fields)
     return cls(**{k: _handle_type(_fields[k], v, cls=cls) for k, v in record.items()})
 
 
